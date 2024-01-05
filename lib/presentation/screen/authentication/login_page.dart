@@ -18,11 +18,18 @@ class _LoginPageState extends State<LoginPage> {
   double containerWidth = 0.3;
   String? mobile;
   String? password;
+  bool isSuccess = false;
   final formKey = GlobalKey<FormState>();
+
   void animateContainer() {
     setState(() {
       containerWidth = 0.85;
     });
+  }
+
+  Future<bool> yourAsyncConditionFunction() async {
+    await Future.delayed(Duration(seconds: 2));
+    return isSuccess;
   }
 
   @override
@@ -65,27 +72,33 @@ class _LoginPageState extends State<LoginPage> {
                           // ),
                           mobileField(),
                         ]),
-                    FloatingActionButton(
+                    CustomAnimatedButton(
+                      initialIcon: Icons.play_arrow,
+                      loadingIcon: Icons.hourglass_empty,
+                      successIcon: Icons.check,
+                      errorIcon: Icons.error,
+                      initialColor: Colors.blue,
+                      loadingColor: Colors.orange,
+                      successColor: Colors.green,
+                      errorColor: Colors.red,
                       onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          formKey.currentState!.save();
-                          print("Mobile ::: $mobile");
-                          FocusScope.of(context).requestFocus(FocusNode());
-                        }
+                        print("isSuccess :: $isSuccess");
+                        setState(() {
+                          isSuccess = true;
+                        });
                       },
-                      child: Icon(Icons.arrow_forward),
+                      successCondition: yourAsyncConditionFunction(),
                     ),
-                    AnimatedButton(
-                      onResult: (bool isSuccess) {
-                        if (isSuccess) {
-                          // Handle success
-                          print("Success");
-                        } else {
-                          // Handle fail
-                          print("Fail");
-                        }
-                      },
-                    )
+                    // FloatingActionButton(
+                    //   onPressed: () {
+                    //     if (formKey.currentState!.validate()) {
+                    //       formKey.currentState!.save();
+                    //       print("Mobile ::: $mobile");
+                    //       FocusScope.of(context).requestFocus(FocusNode());
+                    //     }
+                    //   },
+                    //   child: Icon(Icons.arrow_forward),
+                    // ),
                   ],
                 )),
           ),
