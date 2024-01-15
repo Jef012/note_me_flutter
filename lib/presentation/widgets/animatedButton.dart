@@ -35,6 +35,7 @@ class CustomAnimatedButton extends StatefulWidget {
 class _CustomAnimatedButtonState extends State<CustomAnimatedButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  late AnimationController _successController;
   late ButtonState _buttonState;
 
   @override
@@ -45,11 +46,14 @@ class _CustomAnimatedButtonState extends State<CustomAnimatedButton>
       vsync: this,
       duration: Duration(milliseconds: 500),
     );
+    _successController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1));
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _successController.dispose();
     super.dispose();
   }
 
@@ -60,14 +64,13 @@ class _CustomAnimatedButtonState extends State<CustomAnimatedButton>
     });
 
     bool isSuccess = await widget.successCondition;
-
     _animationController.stop();
 
     setState(() {
       _buttonState = isSuccess ? ButtonState.success : ButtonState.error;
     });
 
-    widget.onPressed(); // Call the provided onPressed callback
+    widget.onPressed();
   }
 
   @override
@@ -103,15 +106,15 @@ class _CustomAnimatedButtonState extends State<CustomAnimatedButton>
   Widget _buildIcon() {
     switch (_buttonState) {
       case ButtonState.initial:
-        return Icon(widget.initialIcon, color: Colors.white);
+        return Icon(Icons.play_arrow, color: Colors.white);
       case ButtonState.loading:
         return CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         );
       case ButtonState.success:
-        return Icon(widget.successIcon, color: Colors.white);
+        return Icon(Icons.check, color: Colors.white);
       case ButtonState.error:
-        return Icon(widget.errorIcon, color: Colors.white);
+        return Icon(Icons.error, color: Colors.white);
     }
   }
 }

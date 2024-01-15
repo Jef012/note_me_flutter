@@ -1,13 +1,15 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 class CustomBackground extends StatelessWidget {
   final double curlyWaveHeight;
   final Color bottomColor;
-  CustomBackground(
-      {super.key, required this.curlyWaveHeight, required this.bottomColor});
+
+  CustomBackground({
+    Key? key,
+    required this.curlyWaveHeight,
+    required this.bottomColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +21,14 @@ class CustomBackground extends StatelessWidget {
           AnimatedContainer(
             duration: Duration(milliseconds: 700),
             height: MediaQuery.of(context).size.height * curlyWaveHeight,
-            child: CustomPaint(
-              size: Size(400, MediaQuery.of(context).size.height),
-              painter: CurlyWavePainter(),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return CustomPaint(
+                  size: Size(
+                      constraints.maxWidth, MediaQuery.of(context).size.height),
+                  painter: CurlyWavePainter(),
+                );
+              },
             ),
           ),
           Expanded(
@@ -42,8 +49,6 @@ class CustomBackground extends StatelessWidget {
 }
 
 class CurlyWavePainter extends CustomPainter {
-  //HexColor("F378A1FF")F378A1FF
-  //HexColor("F3955FFF")F3955FFF
   @override
   void paint(Canvas canvas, Size size) {
     final gradient = LinearGradient(

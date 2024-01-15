@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:note_me/presentation/screen/authentication/register_page.dart';
 import '../../widgets/customBackground.dart';
 
 import 'package:hexcolor/hexcolor.dart';
@@ -20,6 +21,14 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   int _selectedIndex = 0;
   double _curlyWaveHeight = 1.0;
   Color _bottomColor = HexColor("#fca272");
+
+  List<String> title = [
+    "",
+    'Login',
+    'Register',
+    'Enter new password',
+  ];
+
   _selectedPage(int index, UserArguments details) {
     setState(() {
       userDetails = details;
@@ -30,7 +39,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
 
   _updateBackground() {
     setState(() {
-      _curlyWaveHeight = (_selectedIndex == 0) ? 1.0 : 0.5;
+      _curlyWaveHeight = (_selectedIndex == 0) ? 1.0 : 0.4;
       _bottomColor =
           (_selectedIndex == 0) ? HexColor("#fca272") : HexColor("#fca272");
     });
@@ -46,12 +55,14 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
         return LoginPage(
           updateWidget: (index, details) => _selectedPage(index, details),
           userDetails: userDetails ?? UserArguments(),
+          title: title[_selectedIndex],
         );
-      // case 2:
-      //   return OtpVerification(
-      //     updateWidget: (index, details) => _selectedPage(index, details),
-      //     userDetails: userDetails,
-      //   );
+      case 2:
+        return RegisterPage(
+          updateWidget: (index, details) => _selectedPage(index, details),
+          userDetails: userDetails ?? UserArguments(),
+          title: title[_selectedIndex],
+        );
       // case 3:
       //   return ResetPassword(
       //     updateWidget: (index, details) => _selectedPage(index, details),

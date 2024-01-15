@@ -2,29 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:note_me/presentation/screen/home/homePage.dart';
 import 'package:note_me/presentation/widgets/customButton.dart';
 import 'package:note_me/presentation/widgets/customDivider.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 import '../../../models/arguments.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   final Function updateWidget;
   final UserArguments userDetails;
   final String title;
-  LoginPage(
+  RegisterPage(
       {super.key,
       required this.updateWidget,
       required this.userDetails,
       required this.title});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   double containerWidth = 0.3;
+  String? userName;
   String? emailId;
   String? password;
   final formKey = GlobalKey<FormState>();
@@ -50,8 +50,8 @@ class _LoginPageState extends State<LoginPage> {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
         child: Form(
             key: formKey,
@@ -65,7 +65,25 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.bold)),
               ),
               SizedBox(height: height * 0.15),
-              mobileField(height, width, 'abc@gmail.com', Icons.email_outlined,
+              customTextField(height, width, 'User name', Icons.email_outlined,
+                  [FilteringTextInputFormatter.singleLineFormatter],
+                  (dynamic value) {
+                String pattern = r'^[a-zA-Z0-9_-]{3,16}$';
+                RegExp regExp = RegExp(pattern);
+                if (value!.isEmpty) {
+                  return 'Username is required';
+                } else if (!regExp.hasMatch(value)) {
+                  return 'Enter a valid username (3-16 characters)';
+                }
+                return null;
+              }, (String? value) {
+                userName = value!;
+              }, TextInputType.text),
+              customTextField(
+                  height,
+                  width,
+                  'abc@gmail.com',
+                  Icons.email_outlined,
                   [FilteringTextInputFormatter.singleLineFormatter],
                   (dynamic value) {
                 String pattern =
@@ -80,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
               }, (String? value) {
                 emailId = value!;
               }, TextInputType.emailAddress),
-              mobileField(height, width, 'Password', Icons.password, [
+              customTextField(height, width, 'Password', Icons.password, [
                 FilteringTextInputFormatter.singleLineFormatter
               ], (dynamic value) {
                 if (value!.isEmpty) {
@@ -103,19 +121,17 @@ class _LoginPageState extends State<LoginPage> {
               RoundedLoadingButton(
                   controller: _btnController,
                   successIcon: Icons.check,
-                  successColor: Colors.green,
                   failedIcon: Icons.error_outline_outlined,
                   resetDuration: Duration(seconds: 2),
                   resetAfterDuration: true,
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
                       formKey.currentState!.save();
-                      print("Mobile ::: $emailId");
+                      print("UserName ::: $userName");
+                      print("EmailId ::: $emailId");
                       print("Password ::: $password");
                       _btnController.success();
                       FocusScope.of(context).requestFocus(FocusNode());
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => HomePage()));
                     } else {
                       _btnController.error();
                     }
@@ -123,23 +139,12 @@ class _LoginPageState extends State<LoginPage> {
                   height: height * 0.058,
                   width: width * 0.85,
                   color: HexColor("#ff6187"),
-                  child: Text("Login",
+                  child: Text("Sign up",
                       style: GoogleFonts.robotoCondensed(
                           color: Colors.white,
                           fontSize: height * 0.015,
                           fontWeight: FontWeight.bold))),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Forget your password?",
-                  style: GoogleFonts.robotoCondensed(
-                    color: Colors.white,
-                    fontSize: height * 0.019,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              SizedBox(height: height * 0.15),
+              SizedBox(height: height * 0.08),
               Row(
                 children: [
                   Expanded(
@@ -188,7 +193,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Don't have account?  ",
+                    "Have an account?  ",
                     style: GoogleFonts.robotoCondensed(
                       color: Colors.white,
                       fontSize: height * 0.017,
@@ -196,10 +201,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   TextButton(
                     onPressed: () {
-                      widget.updateWidget(2, UserArguments(newUser: true));
+                      widget.updateWidget(1, UserArguments(newUser: true));
                     },
                     child: Text(
-                      "Sign up",
+                      "Login",
                       style: GoogleFonts.robotoCondensed(
                         color: HexColor("#f93467"),
                         fontSize: height * 0.019,
@@ -214,83 +219,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Widget mobileField(double height, double width, hintText, icon,
-  //     inputFormatters, validator, onSaved, keyboardType) {
-  //   return Padding(
-  //     padding: EdgeInsets.only(
-  //       left: width * 0.07,
-  //       right: width * 0.07,
-  //       bottom: height * 0.03,
-  //     ),
-  //     child: Container(
-  //       decoration: BoxDecoration(
-  //         borderRadius: BorderRadius.all(Radius.circular(35)),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.black12,
-  //             spreadRadius: 2,
-  //             blurRadius: 10,
-  //             // offset: Offset(0, 3),
-  //           ),
-  //         ],
-  //       ),
-  //       child: SizedBox(
-  //         width: width * 0.85,
-  //         child: TextFormField(
-  //           decoration: InputDecoration(
-  //             filled: true,
-  //             fillColor: Colors.white,
-  //             errorStyle: TextStyle(color: Colors.white),
-  //             errorMaxLines: 1,
-  //
-  //             enabledBorder: commonInputBorder,
-  //             disabledBorder: commonInputBorder,
-  //             focusedBorder: commonInputBorder,
-  //             focusedErrorBorder: commonInputBorder,
-  //             errorBorder: OutlineInputBorder(
-  //               borderRadius: BorderRadius.all(Radius.circular(35)),
-  //               borderSide: BorderSide(
-  //                 color: Colors.red,
-  //               ),
-  //             ),
-  //             prefixIcon: Padding(
-  //               padding: EdgeInsets.only(
-  //                 left: width * 0.09,
-  //                 right: width * 0.05,
-  //               ),
-  //               child: Icon(
-  //                 icon,
-  //                 color: Colors.black26,
-  //                 size: height * 0.028,
-  //               ),
-  //             ),
-  //             hintText: hintText, //,
-  //             hintStyle: TextStyle(
-  //               color: Colors.black26,
-  //               fontSize: height * 0.022,
-  //             ),
-  //             counterText: '',
-  //             border: InputBorder.none,
-  //             contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-  //           ),
-  //           style: TextStyle(
-  //             color: Colors.black38,
-  //             fontWeight: FontWeight.w500,
-  //             fontSize: height * 0.022,
-  //           ),
-  //           cursorColor: Colors.black,
-  //           keyboardType: keyboardType,
-  //           // maxLength: 10,
-  //           inputFormatters: inputFormatters,
-  //           validator: validator,
-  //           onSaved: onSaved,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  Widget mobileField(double height, double width, hintText, icon,
+  Widget customTextField(double height, double width, hintText, icon,
       inputFormatters, validator, onSaved, keyboardType) {
     return Padding(
       padding: EdgeInsets.only(
@@ -306,19 +235,19 @@ class _LoginPageState extends State<LoginPage> {
               color: Colors.black12,
               spreadRadius: 2,
               blurRadius: 10,
+              // offset: Offset(0, 3),
             ),
           ],
         ),
         child: SizedBox(
           width: width * 0.85,
           child: TextFormField(
-            onTapOutside: (event) =>
-                FocusManager.instance.primaryFocus?.unfocus(),
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
               errorStyle: TextStyle(color: Colors.white),
               errorMaxLines: 1,
+
               enabledBorder: commonInputBorder,
               disabledBorder: commonInputBorder,
               focusedBorder: commonInputBorder,
@@ -340,10 +269,10 @@ class _LoginPageState extends State<LoginPage> {
                   size: height * 0.028,
                 ),
               ),
-              hintText: hintText,
+              hintText: hintText, //,
               hintStyle: TextStyle(
                 color: Colors.black26,
-                fontSize: height * 0.02,
+                fontSize: height * 0.022,
               ),
               counterText: '',
               border: InputBorder.none,
