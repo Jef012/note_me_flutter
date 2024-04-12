@@ -80,15 +80,17 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
 
   @override
   Widget build(BuildContext context) {
+    var height = MediaQuery.of(context).size.height;
+    var width = MediaQuery.of(context).size.width;
     final gradient = LinearGradient(
       colors: [HexColor("#fb7396"), HexColor("#fca272")],
       begin: Alignment.bottomRight,
       end: Alignment.topRight,
     );
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: Stack(
-        alignment: Alignment.center,
+        alignment: Alignment.topCenter,
         children: [
           CustomBackground(
             curlyWaveHeight: _curlyWaveHeight,
@@ -97,11 +99,6 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
           _selectedWidget(_selectedIndex),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //     onPressed: () {
-      //
-      //     },
-      //     child: Icon(Icons.arrow_forward_ios_rounded)),
     );
   }
 }

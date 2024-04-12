@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../screen/authentication/authentication_page.dart';
+import '../screen/home/homePage.dart';
+import '../screen/note/addNote.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => AuthenticationPage());
+      case '/home':
+        return MaterialPageRoute(builder: (_) => HomePage());
+      case '/addNote':
+        return MaterialPageRoute(builder: (_) => AddNote());
 
       // case '/dashboard':
       //   return MaterialPageRoute(builder: (_) => Dashboard());

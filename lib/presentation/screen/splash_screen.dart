@@ -3,17 +3,54 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexcolor/hexcolor.dart';
 import 'package:note_me/models/arguments.dart';
+import 'package:note_me/models/authModel.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../controller/provider/appProvider.dart';
 
 class SplashScreen extends StatefulWidget {
   final Function updateWidget;
-
-  SplashScreen({super.key, required this.updateWidget});
+  const SplashScreen({super.key, required this.updateWidget});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool checkUser = false;
+  bool isLoading = false;
+  checkUserData() async {
+    SharedPreferences sharedUser = await SharedPreferences.getInstance();
+    var userDataString = sharedUser.getString('user');
+    var userString = sharedUser.getString('authToken');
+
+    print("userDataString :::::::: $userDataString");
+    print("userString :::::::: $userString");
+    if (userDataString != null) {
+      checkUser = true;
+      final appProvider = Provider.of<AppProvider>(context, listen: false);
+      appProvider.updateUser(userFromJson(userDataString));
+      // appProvider.updateUser(UserModel(token: userDataString));
+    } else {
+      checkUser = false;
+    }
+  }
+
+  void navigate() {
+    checkUserData();
+    Future.delayed(Duration(milliseconds: 100), () {
+      setState(() {
+        isLoading = true;
+      });
+      if (checkUser) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        widget.updateWidget(1, UserArguments(newUser: true));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -69,12 +106,14 @@ class _SplashScreenState extends State<SplashScreen> {
         Padding(
           padding: EdgeInsets.only(bottom: 15),
           child: Align(
+            alignment: Alignment.bottomCenter,
             child: FloatingActionButton(
                 onPressed: () {
-                  widget.updateWidget(1, UserArguments(newUser: true));
+                  navigate();
                 },
-                child: Icon(Icons.arrow_forward_ios_rounded)),
-            alignment: Alignment.bottomCenter,
+                child: !isLoading
+                    ? Icon(Icons.arrow_forward_ios_rounded)
+                    : CircularProgressIndicator()),
           ),
         )
       ],
