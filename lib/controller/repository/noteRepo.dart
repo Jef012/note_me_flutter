@@ -32,6 +32,18 @@ class NoteRepository {
     }
   }
 
+  Future editNote(data, noteId) async {
+    final res = await _helper.put("notes/edit/$noteId", data);
+    print("res :: $res");
+    if (res["meta"]["statusCode"] == 200) {
+      var auth = UserModel.fromJson(res["values"]);
+      print("Auth ::${auth}");
+      return auth;
+    } else {
+      throw ('${res["meta"]['message']}');
+    }
+  }
+
   Future deleteNote(userId) async {
     final res = await _helper.delete("notes/delete?userId=$userId");
     print("res :: $res");

@@ -124,7 +124,6 @@ class ApiBaseHelper {
         Uri.parse('$_baseUrl/$url'),
         headers: {
           "Content-Type": "application/json; charset=UTF-8",
-          "MB-API-KEY": "merabreak",
           "Authorization": authToken,
         },
         body: json.encode(data),

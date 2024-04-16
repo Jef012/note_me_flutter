@@ -105,21 +105,32 @@ class _HomePageState extends State<HomePage> {
                         document: Document.fromDelta(delta),
                         selection: const TextSelection.collapsed(offset: 0),
                       );
-                      return Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          color: gridColors[index % gridColors.length]
-                              .withOpacity(0.1),
-                        ),
-                        child: QuillEditor.basic(
-                          configurations: QuillEditorConfigurations(
-                            controller: quillController,
-                            readOnly: true,
-                            disableClipboard: true,
-                            paintCursorAboveText: true,
-                            showCursor: false,
-                            scrollPhysics: const BouncingScrollPhysics(),
+                      return InkWell(
+                        onTap: () {
+                          print("object");
+                          Navigator.of(context).pushNamed("/addNote",
+                              arguments: {
+                                "quillController": quillController,
+                                "isNewNote": false,
+                                "noteId": "${data.sId}"
+                              });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: gridColors[index % gridColors.length]
+                                .withOpacity(0.1),
+                          ),
+                          child: QuillEditor.basic(
+                            configurations: QuillEditorConfigurations(
+                              controller: quillController,
+                              readOnly: true,
+                              disableClipboard: true,
+                              paintCursorAboveText: true,
+                              showCursor: false,
+                              scrollPhysics: const BouncingScrollPhysics(),
+                            ),
                           ),
                         ),
                       );
@@ -140,7 +151,8 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).pushNamed("/addNote");
+          Navigator.of(context)
+              .pushNamed("/addNote", arguments: {"isNewNote": true});
         },
         child: const Icon(Icons.add),
       ),
