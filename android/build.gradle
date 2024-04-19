@@ -7,6 +7,18 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+    }
+
+
+}
+subprojects {
+    if (project.name.contains('flutter_html_to_pdf')) {
+        buildscript {
+            dependencies {
+                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Force the Kotlin Gradle plugin version
+            }
+        }
     }
 }
 

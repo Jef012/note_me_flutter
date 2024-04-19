@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
+import 'package:delta_to_html/delta_to_html.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
+import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
+
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:hexcolor/hexcolor.dart';
+import 'package:note_me/presentation/screen/note/pdfViewer.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
+
 import 'package:provider/provider.dart';
-import 'package:quill_pdf_converter/quill_pdf_converter.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../controller/provider/appProvider.dart';
 
@@ -32,14 +32,17 @@ class AddNote extends StatefulWidget {
 class _AddNoteState extends State<AddNote> {
   QuillController _quillController = QuillController.basic();
   QuillController? _quillDynamicController;
+  String? generatedPdfFilePath;
 
   @override
   void initState() {
     _quillDynamicController = widget.quillController;
     print("_quillDynamicController ::: $_quillDynamicController");
+
     super.initState();
   }
 
+  // FlutterNativeHtmlToPdf? _flutterNativeHtmlToPdfPlugin;
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AppProvider>(context, listen: false).userModel;
@@ -69,10 +72,14 @@ class _AddNoteState extends State<AddNote> {
                 controller: _quillDynamicController!,
                 toolbarIconCrossAlignment: WrapCrossAlignment.end,
                 fontSizesValues: const {
-                  'Small': '7',
-                  'Medium': '20.5',
-                  'Large': '40'
+                  'Small': '12',
+                  'Medium': '25.5',
+                  'Large': '45'
+                  // 'Small': '7',
+                  //   'Medium': '20.5',
+                  //   'Large': '40'
                 },
+                headerStyleType: HeaderStyleType.buttons,
                 toolbarSize: MediaQuery.of(context).size.height * 0.06,
                 multiRowsDisplay: false,
                 toolbarIconAlignment: WrapAlignment.spaceBetween,
@@ -101,15 +108,6 @@ class _AddNoteState extends State<AddNote> {
     );
   }
 
-  double getBottomInsets() {
-    if (MediaQuery.of(context).viewInsets.bottom >
-        MediaQuery.of(context).viewPadding.bottom) {
-      return MediaQuery.of(context).viewInsets.bottom -
-          MediaQuery.of(context).viewPadding.bottom;
-    }
-    return 0;
-  }
-
   addNote(userId) {
     print("widget.isNewNote :: ${widget.isNewNote}");
     String quillDocumentJson =
@@ -122,6 +120,8 @@ class _AddNoteState extends State<AddNote> {
         context: context,
         barrierColor: Colors.black12,
         builder: (BuildContext context) {
+          List deltaJson = _quillDynamicController!.document.toDelta().toJson();
+          print(DeltaToHTML.encodeJson(deltaJson));
           return Dialog(
             child: Container(
               height: 200,
@@ -139,7 +139,9 @@ class _AddNoteState extends State<AddNote> {
                   IconButton(
                     icon: Icon(Icons.share),
                     onPressed: () async {
-                      _shareDocument(context);
+                      final deltaOps = _quillDynamicController!.document;
+                      generatePDF(deltaOps);
+                      print("deltaOps ::::: $deltaOps");
                     },
                   ),
                 ],
@@ -161,83 +163,67 @@ class _AddNoteState extends State<AddNote> {
     }
   }
 
-  // Future<void> _shareDocument(BuildContext context) async {
-  //   var jsonData = _quillController.document.toDelta().toJson();
-  //   var json = jsonEncode(jsonData);
-  //
-  //   final pdf = pw.Document();
-  //   pdf.addPage(
-  //     pw.Page(
-  //       build: (pw.Context context) {
-  //         return pw.Center(
-  //           child: pw.Text(json),
-  //         );
-  //       },
-  //     ),
-  //   );
-  //
-  //   Directory tempDir = await getTemporaryDirectory();
-  //   String tempPath = tempDir.path;
-  //
-  //   File pdfFile = File('$tempPath/document.pdf');
-  //   await pdfFile.writeAsBytes(await pdf.save());
-  //
-  //   Share.shareFiles([pdfFile.path]);
-  // }
+  Future<void> generatePDF(Document document) async {
+    try {
+      List<Map<String, dynamic>> deltaJson =
+          _quillDynamicController!.document.toDelta().toJson();
 
-  Future<void> _shareDocument(BuildContext context) async {
-    final pdfWidgets = await _quillController.document.toDelta().toPdf();
+      List<Map<String, dynamic>> removeFFfromColor(
+          List<Map<String, dynamic>> deltaJson) {
+        List<Map<String, dynamic>> modifiedDeltaJson =
+            List<Map<String, dynamic>>.from(deltaJson);
 
-    // Generate a PDF document from the Quill document content
-    final pdf = pw.Document();
-    for (var widget in pdfWidgets) {
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return widget;
-          },
-        ),
-      );
+        for (var item in modifiedDeltaJson) {
+          if (item.containsKey('attributes') && item['attributes'] != null) {
+            var attributes = item['attributes'];
+
+            if (attributes.containsKey('color') &&
+                attributes['color'] != null) {
+              var color = attributes['color'];
+              if (color is String &&
+                  color.length == 9 &&
+                  color.startsWith('#FF')) {
+                var newColor = '#${color.substring(3)}';
+                attributes['color'] = newColor;
+              }
+            }
+            if (attributes.containsKey('background') &&
+                attributes['background'] != null) {
+              var backgroundColor = attributes['background'];
+              if (backgroundColor is String &&
+                  backgroundColor.length == 9 &&
+                  backgroundColor.startsWith('#FF')) {
+                var newBackgroundColor = '#${backgroundColor.substring(3)}';
+                attributes['background'] = newBackgroundColor;
+              }
+            }
+          }
+        }
+
+        return modifiedDeltaJson;
+      }
+
+      String htmlContent = DeltaToHTML.encodeJson(removeFFfromColor(deltaJson));
+      print("htmlContent :: $htmlContent");
+      const filePath = '/storage/emulated/0/Download/';
+
+      await FlutterHtmlToPdf.convertFromHtmlContent(
+          "<div style='padding: 30px;'>$htmlContent</div>",
+          filePath,
+          "newDocument6");
+
+      // Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: (context) => Viewer(
+      //               deltaJson: deltaJson,
+      //             )));
+      print(
+          "htmlContent with padding :: <div style='padding: 20px;'>$htmlContent</div>");
+      print('PDF generated successfully at $filePath');
+    } catch (e, stackTrace) {
+      print('Error generating PDF: $e');
+      print(stackTrace);
     }
-
-    // Get the temporary directory
-    Directory tempDir = await getTemporaryDirectory();
-    String tempPath = tempDir.path;
-
-    // Write the PDF document to a file in the temporary directory
-    File pdfFile = File('$tempPath/document.pdf');
-    await pdfFile.writeAsBytes(await pdf.save());
-
-    // Share the temporary PDF file
-    Share.shareFiles([pdfFile.path]);
-
-    // Save the PDF file to the downloads directory
-    await _saveToDownloads(pdfFile);
-  }
-
-  Future<void> _saveToDownloads(File pdfFile) async {
-    // Get the application documents directory
-    final dir = await getApplicationDocumentsDirectory();
-
-    // Generate a filename for the PDF file
-    final filename = 'document.pdf';
-
-    // Write the PDF file to the application documents directory
-    final savedFile = await _storeFile(filename, await pdfFile.readAsBytes());
-
-    // Show a notification or message indicating the file has been saved
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('PDF file saved to ${savedFile.path}'),
-      ),
-    );
-    print("savedFile.path ::: ${savedFile.path}");
-  }
-
-  Future<File> _storeFile(String filename, List<int> bytes) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/$filename');
-    await file.writeAsBytes(bytes, flush: true);
-    return file;
   }
 }

@@ -132,6 +132,17 @@ class _HomePageState extends State<HomePage> {
                               scrollPhysics: const BouncingScrollPhysics(),
                             ),
                           ),
+
+                          // QuillEditor.basic(
+                          //   configurations: QuillEditorConfigurations(
+                          //     controller: quillController,
+                          //     readOnly: true,
+                          //     disableClipboard: true,
+                          //     paintCursorAboveText: true,
+                          //     showCursor: false,
+                          //     scrollPhysics: const BouncingScrollPhysics(),
+                          //   ),
+                          // ),
                         ),
                       );
                     } else {
@@ -144,7 +155,7 @@ class _HomePageState extends State<HomePage> {
             );
           } else {
             return const Center(
-              child: Text("Network Error"),
+              child: CircularProgressIndicator(),
             );
           }
         },
