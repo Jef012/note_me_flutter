@@ -146,7 +146,6 @@ class ApiBaseHelper {
         Uri.parse('$_baseUrl/$url'),
         headers: {
           "Content-Type": "application/json; charset=UTF-8",
-          "MB-API-KEY": "merabreak",
           "Authorization": authToken,
         },
       );
@@ -165,7 +164,6 @@ class ApiBaseHelper {
     try {
       authToken = await getAuthToken();
       Map<String, String> headers = {
-        "MB-API-KEY": "merabreak",
         "Authorization": authToken,
       };
       var request = http.MultipartRequest('PUT', Uri.parse('$_baseUrl/$url'));

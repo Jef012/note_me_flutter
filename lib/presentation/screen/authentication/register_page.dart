@@ -33,7 +33,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   double containerWidth = 0.3;
-  String? userName;
+  String? mobile;
   String? emailId;
   String? password;
   final formKey = GlobalKey<FormState>();
@@ -119,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               onTap: () {
                                 if (formKey.currentState!.validate()) {
                                   formKey.currentState!.save();
-                                  // print("Mobile ::: $mobile");
+                                  print("Mobile ::: $emailId");
                                   FocusScope.of(context)
                                       .requestFocus(FocusNode());
                                   signUp();
@@ -311,7 +311,7 @@ class _RegisterPageState extends State<RegisterPage> {
         },
         onSaved: (String? value) {
           if (title == "Mobile number") {
-            userName = value!;
+            mobile = value!;
           } else if (title == "Password") {
             password = value!;
           }
@@ -337,14 +337,16 @@ class _RegisterPageState extends State<RegisterPage> {
 
   signUp() {
     AuthenticationRepository().signUp({
-      "name": "$userName",
+      "mobile": "$mobile",
       "email": "$emailId",
       "password": "$password"
     }).then((value) {
       // value != "" ? _btnController.success() : _btnController.error();
-      saveData(value);
-      Navigator.pushReplacementNamed(context, "/home");
+      // saveData(value);
+      // Navigator.pushReplacementNamed(context, "/home");
       print(" value[values] :: $value");
+    }).onError((error, stackTrace) {
+      print(" value[error] :: $error");
     });
   }
 

@@ -1,18 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:delta_to_html/delta_to_html.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
-
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:note_me/presentation/screen/note/pdfViewer.dart';
-import 'package:path_provider/path_provider.dart';
-
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:provider/provider.dart';
-
 import '../../../controller/provider/appProvider.dart';
+import '../../../controller/repository/noteRepo.dart';
 
 class AddNote extends StatefulWidget {
   final QuillController quillController;
@@ -42,66 +37,85 @@ class _AddNoteState extends State<AddNote> {
     super.initState();
   }
 
-  // FlutterNativeHtmlToPdf? _flutterNativeHtmlToPdfPlugin;
+  int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AppProvider>(context, listen: false).userModel;
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-            icon: Icon(Icons.arrow_back_ios)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              print("<<<<<<<<<< ${user?.sId}");
-              addNote(user?.sId);
-            },
-            child: Text("Done"),
-          )
-        ],
-        scrolledUnderElevation: 0,
-        bottom: PreferredSize(
-            preferredSize: Size(
-                double.infinity, MediaQuery.of(context).size.height * 0.06),
-            child: QuillToolbar.simple(
-              configurations: QuillSimpleToolbarConfigurations(
-                controller: _quillDynamicController!,
-                toolbarIconCrossAlignment: WrapCrossAlignment.end,
-                fontSizesValues: const {
-                  'Small': '12',
-                  'Medium': '25.5',
-                  'Large': '45'
-                  // 'Small': '7',
-                  //   'Medium': '20.5',
-                  //   'Large': '40'
+
+    return Hero(
+      tag: widget.noteId,
+      child: Material(
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            leading: IconButton(
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                  Navigator.pop(context, true);
                 },
-                headerStyleType: HeaderStyleType.buttons,
-                toolbarSize: MediaQuery.of(context).size.height * 0.06,
-                multiRowsDisplay: false,
-                toolbarIconAlignment: WrapAlignment.spaceBetween,
-                sectionDividerColor: Colors.black,
+                icon: Icon(Icons.arrow_back_ios)),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  addNote(user?.sId);
+
+                  FocusScope.of(context).requestFocus(FocusNode());
+                },
+                child: Text("Save"),
               ),
-            )),
-      ),
-      body: Container(
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 15, spreadRadius: 5)
-        ]),
-        margin: const EdgeInsets.all(20),
-        padding: const EdgeInsets.all(20),
-        child: QuillEditor.basic(
-          configurations: QuillEditorConfigurations(
-            controller: _quillDynamicController!,
-            scrollBottomInset: 50,
-            scrollPhysics: BouncingScrollPhysics(),
-            readOnly: false,
-            autoFocus: true,
-            expands: true,
-            maxHeight: 25,
+            ],
+            scrolledUnderElevation: 0,
+            bottom: PreferredSize(
+                preferredSize: Size(double.infinity,
+                    MediaQuery.of(context).size.height * 0.065),
+                child: Container(
+                  padding:
+                      const EdgeInsets.only(left: 10, right: 10, bottom: 5),
+                  decoration: const BoxDecoration(boxShadow: [
+                    BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: Offset(0, 12)),
+                  ], color: Colors.white),
+                  child: QuillToolbar.simple(
+                    configurations: QuillSimpleToolbarConfigurations(
+                        controller: _quillDynamicController!,
+                        toolbarIconCrossAlignment: WrapCrossAlignment.end,
+                        fontSizesValues: const {
+                          'Extra Small': '8',
+                          'Small': '13',
+                          'Medium': '17',
+                          'Large': '24',
+                          'Extra Large': '32',
+                          'Huge': '48',
+                          // 'Small': '12',
+                          // 'Medium': '20.5',
+                          // 'Large': '40'
+                        },
+                        headerStyleType: HeaderStyleType.buttons,
+                        toolbarSize: MediaQuery.of(context).size.height * 0.06,
+                        multiRowsDisplay: false,
+                        toolbarIconAlignment: WrapAlignment.spaceBetween,
+                        sectionDividerColor: Colors.white,
+                        color: Colors.white),
+                  ),
+                )),
+          ),
+          body: Container(
+            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
+            child: QuillEditor.basic(
+              configurations: QuillEditorConfigurations(
+                controller: _quillDynamicController!,
+                scrollBottomInset: 50,
+                scrollPhysics: BouncingScrollPhysics(),
+                readOnly: false,
+                autoFocus: false,
+                expands: true,
+                maxHeight: 25,
+              ),
+            ),
           ),
         ),
       ),
@@ -112,37 +126,162 @@ class _AddNoteState extends State<AddNote> {
     print("widget.isNewNote :: ${widget.isNewNote}");
     String quillDocumentJson =
         jsonEncode(_quillDynamicController!.document.toDelta().toJson());
-    print("quillDocumentJson ::: $quillDocumentJson");
+    // print("quillDocumentJson ::: $quillDocumentJson");
     if (_quillDynamicController!.document.isEmpty()) {
       print("Note is Empty");
     } else {
       showDialog(
         context: context,
-        barrierColor: Colors.black12,
-        builder: (BuildContext context) {
-          List deltaJson = _quillDynamicController!.document.toDelta().toJson();
-          print(DeltaToHTML.encodeJson(deltaJson));
+        barrierDismissible: true,
+        builder: (context) {
+          FocusScope.of(context).unfocus();
           return Dialog(
             child: Container(
-              height: 200,
-              padding: const EdgeInsets.all(16.0),
+              height: MediaQuery.of(context).size.height * 0.47,
+              width: MediaQuery.of(context).size.width * 0.5,
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black38),
-              ),
-              child: Column(
+                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Text(
-                    "Successfully saved",
-                    textAlign: TextAlign.center,
+                  Positioned(
+                    top: -MediaQuery.of(context).size.height * 0.12,
+                    left: MediaQuery.of(context).size.width * 0.01,
+                    child: Image.asset(
+                      "assets/image/savePopup.png",
+                      fit: BoxFit.contain,
+                      height: MediaQuery.of(context).size.height * 0.35,
+                    ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.share),
-                    onPressed: () async {
-                      final deltaOps = _quillDynamicController!.document;
-                      generatePDF(deltaOps);
-                      print("deltaOps ::::: $deltaOps");
-                    },
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.2),
+                        Text(
+                          "Save Changes",
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.024,
+                              fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          "Do you want to Save changes?",
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.018,
+                              color: Colors.black26,
+                              fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.height * 0.018),
+                            Expanded(
+                              child: customButton(
+                                  title: "Save",
+                                  backgroundColor: HexColor("#b52d4b"),
+                                  textColor: Colors.white,
+                                  onTap: () {
+                                    print("Note is not Empty");
+                                    if (widget.isNewNote) {
+                                      print("addNote");
+                                      NoteRepository().addNote({
+                                        "userId": userId,
+                                        "title": "Title",
+                                        "content": quillDocumentJson
+                                      });
+                                    } else {
+                                      print("editNote");
+                                      NoteRepository().editNote({
+                                        "userId": userId,
+                                        "title": "Title",
+                                        "content": quillDocumentJson
+                                      }, widget.noteId);
+                                    }
+                                  }),
+                            ),
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.height * 0.017),
+                            Expanded(
+                              child: customButton(
+                                  title: "Cancel",
+                                  backgroundColor: Colors.black,
+                                  textColor: Colors.white,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  }),
+                            ),
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.height * 0.018),
+                          ],
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.018),
+                        InkWell(
+                          onTap: () {
+                            final deltaOps = _quillDynamicController!.document;
+
+                            Navigator.of(context).pushNamed("/prizeSheet",
+                                arguments: {
+                                  "quillController": _quillDynamicController
+                                });
+                            // generatePDF(deltaOps);
+                            print("deltaOps ::::: $deltaOps");
+                          },
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.048,
+                            margin: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.height * 0.018,
+                              right: MediaQuery.of(context).size.height * 0.018,
+                            ),
+                            decoration: BoxDecoration(
+                              color: HexColor("#b52d4b").withOpacity(0.2),
+                              border: Border.all(
+                                  color: HexColor("#b52d4b").withOpacity(0.5)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(25)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset("assets/image/export-pdf.png",
+                                    color: HexColor("#b52d4b"),
+                                    height: MediaQuery.of(context).size.height *
+                                        0.02),
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.015),
+                                Text(
+                                  "Export",
+                                  style: GoogleFonts.robotoCondensed(
+                                    color: HexColor("#b52d4b"),
+                                    fontSize:
+                                        MediaQuery.of(context).size.height *
+                                            0.017,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        // customButton(
+                        //     title: "Cancel",
+                        //     backgroundColor: Colors.black,
+                        //     textColor: Colors.white,
+                        //     onTap: () {
+                        //       final deltaOps = _quillDynamicController!.document;
+                        //       generatePDF(deltaOps);
+                        //       print("deltaOps ::::: $deltaOps");
+                        //     }),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -150,17 +289,35 @@ class _AddNoteState extends State<AddNote> {
           );
         },
       );
-
-      // print("Note is not Empty");
-      // if (widget.isNewNote) {
-      //   NoteRepository().addNote(
-      //       {"userId": userId, "title": "Title", "content": quillDocumentJson});
-      // } else {
-      //   NoteRepository().editNote(
-      //       {"userId": userId, "title": "Title", "content": quillDocumentJson},
-      //       widget.noteId);
-      // }
     }
+  }
+
+  Widget customButton({onTap, title, textColor, backgroundColor}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.048,
+        width: MediaQuery.of(context).size.width * 0.22,
+        margin: EdgeInsets.only(
+          top: MediaQuery.of(context).size.height * 0.047,
+        ),
+        decoration: BoxDecoration(
+            color: backgroundColor, //HexColor("#b52d4b"),
+            borderRadius: BorderRadius.all(Radius.circular(25))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.robotoCondensed(
+                color: textColor, //Colors.black54,
+                fontSize: MediaQuery.of(context).size.height * 0.017,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> generatePDF(Document document) async {
@@ -212,12 +369,6 @@ class _AddNoteState extends State<AddNote> {
           filePath,
           "newDocument6");
 
-      // Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: (context) => Viewer(
-      //               deltaJson: deltaJson,
-      //             )));
       print(
           "htmlContent with padding :: <div style='padding: 20px;'>$htmlContent</div>");
       print('PDF generated successfully at $filePath');

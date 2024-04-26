@@ -246,9 +246,11 @@ class _LoginPageState extends State<LoginPage> {
     AuthenticationRepository()
         .login({"email": "$emailId", "password": "$password"}).then((value) {
       // value != "" ? _btnController.success() : _btnController.error();
-      saveData(value);
-      Navigator.pushReplacementNamed(context, "/home");
+      // saveData(value);
+      // Navigator.pushReplacementNamed(context, "/home");
       print("value[values] :: $value");
+    }).onError((error, stackTrace) {
+      print("error :: $error");
     });
   }
 
@@ -417,7 +419,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  OutlineInputBorder commonInputBorder = OutlineInputBorder(
+  OutlineInputBorder commonInputBorder = const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(35)),
       borderSide: BorderSide(
         color: Colors.transparent,

@@ -4,6 +4,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import '../screen/authentication/authentication_page.dart';
 import '../screen/home/homePage.dart';
 import '../screen/note/addNote.dart';
+import '../screen/payment/prizeSheet.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings settings) {
@@ -48,8 +49,16 @@ class AppRouter {
           );
         }
 
-      // case '/dashboard':
-      //   return MaterialPageRoute(builder: (_) => Dashboard());
+      case '/prizeSheet':
+        final Map<String, dynamic>? routeArguments =
+            settings.arguments as Map<String, dynamic>?;
+
+        QuillController? quillController = routeArguments?['quillController'];
+
+        return MaterialPageRoute(
+            builder: (_) => PrizeSheet(
+                  quillDynamicController: quillController!,
+                ));
       // case '/challenge-details':
       //   Map<String, dynamic> routeArguments =
       //   settings.arguments as Map<String, dynamic>;

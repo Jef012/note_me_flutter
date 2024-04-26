@@ -16,18 +16,18 @@ UserModel userFromJson(String str) => UserModel.fromJson(json.decode(str));
 
 class UserModel {
   String? sId;
-  String? name;
+  String? mobile;
   String? email;
   String? password;
   int? iV;
   String? token;
 
   UserModel(
-      {this.sId, this.name, this.email, this.password, this.iV, this.token});
+      {this.sId, this.mobile, this.email, this.password, this.iV, this.token});
 
   UserModel.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    name = json['name'];
+    mobile = json['mobile'];
     email = json['email'];
     password = json['password'];
     iV = json['__v'];
@@ -37,7 +37,7 @@ class UserModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
-    data['name'] = this.name;
+    data['mobile'] = this.mobile;
     data['email'] = this.email;
     data['password'] = this.password;
     data['__v'] = this.iV;

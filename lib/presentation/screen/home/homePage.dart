@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
@@ -105,44 +106,54 @@ class _HomePageState extends State<HomePage> {
                         document: Document.fromDelta(delta),
                         selection: const TextSelection.collapsed(offset: 0),
                       );
-                      return InkWell(
-                        onTap: () {
-                          print("object");
-                          Navigator.of(context).pushNamed("/addNote",
-                              arguments: {
+                      return Hero(
+                        tag: "${data.sId}",
+                        child: Material(
+                          child: InkWell(
+                            onTap: () {
+                              if (kDebugMode) {
+                                print("object");
+                              }
+                              Navigator.of(context)
+                                  .pushNamed("/addNote", arguments: {
                                 "quillController": quillController,
                                 "isNewNote": false,
-                                "noteId": "${data.sId}"
+                                "noteId": "${data.sId}",
                               });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            color: gridColors[index % gridColors.length]
-                                .withOpacity(0.1),
-                          ),
-                          child: QuillEditor.basic(
-                            configurations: QuillEditorConfigurations(
-                              controller: quillController,
-                              readOnly: true,
-                              disableClipboard: true,
-                              paintCursorAboveText: true,
-                              showCursor: false,
-                              scrollPhysics: const BouncingScrollPhysics(),
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: gridColors[index % gridColors.length]
+                                    .withOpacity(0.1),
+                              ),
+                              child: QuillEditor.basic(
+                                configurations: QuillEditorConfigurations(
+                                  controller: quillController,
+                                  readOnly: true,
+                                  disableClipboard: false,
+                                  paintCursorAboveText: false,
+                                  showCursor: false,
+                                  scrollable: true,
+                                  scrollPhysics: NeverScrollableScrollPhysics(),
+                                  enableInteractiveSelection: false,
+                                  enableScribble: false,
+                                  floatingCursorDisabled: false,
+                                ),
+                              ),
+                              // QuillEditor.basic(
+                              //   configurations: QuillEditorConfigurations(
+                              //     controller: quillController,
+                              //     readOnly: true,
+                              //     disableClipboard: true,
+                              //     paintCursorAboveText: true,
+                              //     showCursor: false,
+                              //     scrollPhysics: const BouncingScrollPhysics(),
+                              //   ),
+                              // ),
                             ),
                           ),
-
-                          // QuillEditor.basic(
-                          //   configurations: QuillEditorConfigurations(
-                          //     controller: quillController,
-                          //     readOnly: true,
-                          //     disableClipboard: true,
-                          //     paintCursorAboveText: true,
-                          //     showCursor: false,
-                          //     scrollPhysics: const BouncingScrollPhysics(),
-                          //   ),
-                          // ),
                         ),
                       );
                     } else {
@@ -213,20 +224,52 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: const Text('Logout'),
                 onTap: () {
-                  AuthenticationRepository().logOut().then((value) async {
-                    print("value >>>> $value");
-                    Navigator.of(context).pushReplacementNamed("/");
-                    SharedPreferences sharedUser =
-                        await SharedPreferences.getInstance();
-                    sharedUser.remove('user');
-                  });
-                  Navigator.of(context).pushReplacementNamed("/");
+                  showDialog(
+                      context: context, builder: (context) => logoutAlert());
+                  // AuthenticationRepository().logOut().then((value) async {
+                  //   print("value >>>> $value");
+                  //   // Navigator.of(context).pushReplacementNamed("/");
+                  //   SharedPreferences sharedUser =
+                  //       await SharedPreferences.getInstance();
+                  //   sharedUser.remove('user');
+                  // });
+                  // // Navigator.of(context).pushReplacementNamed("/");
                 },
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> removeUserData() async {
+    SharedPreferences sharedUser = await SharedPreferences.getInstance();
+    await sharedUser.remove('user');
+    await sharedUser.remove('authToken');
+
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    appProvider.updateUser(UserModel());
+    Navigator.of(context).pushReplacementNamed("/");
+    print("User data and auth token removed, redirected to login");
+  }
+
+  Widget logoutAlert() {
+    return AlertDialog(
+      title: Text("Logout"),
+      content: Text("Do you want to logout?"),
+      actions: [
+        ElevatedButton(
+            onPressed: () {
+              AuthenticationRepository().logOut().then((value) async {
+                print("value >>>> $value");
+                // Navigator.of(context).pushReplacementNamed("/");
+                removeUserData();
+              });
+            },
+            child: Text("YES")),
+        ElevatedButton(onPressed: () {}, child: Text("NO"))
+      ],
     );
   }
 }
